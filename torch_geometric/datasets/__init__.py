@@ -75,6 +75,7 @@ from .sbm_dataset import RandomPartitionGraphDataset
 from .linkx_dataset import LINKXDataset
 from .elliptic import EllipticBitcoinDataset
 from .metrla import MetrLa, MetrLaInMemory
+from .pems_bay import PemsBay, PemsBayInMemory
 
 import torch_geometric.datasets.utils  # noqa
 
@@ -160,6 +161,8 @@ __all__ = [
     'EllipticBitcoinDataset',
     'MetrLa',
     'MetrLaInMemory',
+    'PemsBay',
+    'PemsBayInMemory',
 ]
 
 classes = __all__
