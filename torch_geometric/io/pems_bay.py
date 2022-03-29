@@ -77,25 +77,31 @@ class PemsBayIo:
 
         data_df = pd.read_csv(filepath_or_buffer=data_path, index_col=0)
         _, n_nodes = data_df.shape
-        data = np.expand_dims(a=data_df.values, axis=-1)
+
+        # Range of values is 0-100, so half precision (float16) is ok.
+        data = np.expand_dims(a=data_df.values, axis=-1).astype(np.float16)
 
         data = [data]
-        indices = ((data_df.index.values.astype("datetime64") -
-                    data_df.index.values.astype("datetime64[D]")) / 3600)\
+
+        # Range of values is 0-23, so half precision (short) is ok.
+        hour_of_day = ((data_df.index.values.astype("datetime64") -
+                        data_df.index.values.astype("datetime64[D]")) / 3600)\
             .astype(int) % 24
-        hour_of_day = np.tile(indices, [1, n_nodes, 1]).transpose((2, 1, 0))
+        hour_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
+            (2, 1, 0)).astype(np.short)
         data.append(hour_of_day)
 
-        values = data_df.index.astype("datetime64[ns]").dayofweek
-        day_of_week = np.tile(values, [1, n_nodes, 1]).transpose((2, 1, 0))
+        day_of_week = data_df.index.astype("datetime64[ns]").dayofweek
+        day_of_week = np.tile(day_of_week, [1, n_nodes, 1]).transpose(
+            (2, 1, 0)).astype(np.short)
         data.append(day_of_week)
 
         data = np.concatenate(data, axis=-1)
         x, y = [], []
 
-        for t in range(self.min_t, self.max_t):
-            x.append(data[t + self.previous_offsets, ...])
-            y.append(data[t + self.future_offsets, ...])
+        indices_range = range(self.min_t, self.max_t)
+        x = [data[t + self.previous_offsets, ...] for t in indices_range]
+        y = [data[t + self.future_offsets, ...] for t in indices_range]
 
         x = np.stack(arrays=x, axis=0)
         y = np.stack(arrays=y, axis=0)
