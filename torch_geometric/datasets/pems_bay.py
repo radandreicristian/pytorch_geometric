@@ -71,7 +71,7 @@ class PemsBay(Dataset):
     gdrive_ids = {
         'distances.csv': '1tMT9cK-FqhK-TOdwDnFptRtpuB4J0mag',
         'sensors.txt': '1x-wSsSC_4ozXLUG6uvU01UGxG7CsfBOZ',
-        'sensor-readings.csv': '1uqY2P7201la1GqapL4FRtecUUkd4MOn7'
+        'sensor-readings.csv': '1iGTBtr3cJZGm_vW2opmnC3CozDACqC6E'
     }
 
     n_readings = 52116
