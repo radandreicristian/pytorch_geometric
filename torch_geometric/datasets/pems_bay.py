@@ -255,7 +255,7 @@ class PemsBayInMemory(InMemoryDataset):
     gdrive_ids = {
         'distances.csv': '1tMT9cK-FqhK-TOdwDnFptRtpuB4J0mag',
         'sensors.txt': '1x-wSsSC_4ozXLUG6uvU01UGxG7CsfBOZ',
-        'sensor-readings.csv': '1uqY2P7201la1GqapL4FRtecUUkd4MOn7'
+        'sensor-readings.csv': '13AzTJhRIwl8amw2YBX6nai_h781haiON'
     }
 
     n_readings = 52116
@@ -318,7 +318,6 @@ class PemsBayInMemory(InMemoryDataset):
 
     def get(self, idx: int) -> Data:
         r"""Get the data object at index :obj:`idx`."""
-
         x = torch.tensor(data=self.x[idx, ...], dtype=torch.float32)
         y = torch.tensor(data=self.y[idx, ...], dtype=torch.float32)
 
