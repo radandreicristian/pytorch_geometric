@@ -321,10 +321,14 @@ class PemsBayInMemory(InMemoryDataset):
         r"""Get the data object at index :obj:`idx`."""
         # x = torch.tensor(data=self.x[idx, ...], dtype=torch.float32)
         # y = torch.tensor(data=self.y[idx, ...], dtype=torch.float32)
-        x = {k: torch.tensor(data=self.x[k][idx, ...], dtype=torch.float32) for k in
-            self.features}
-        y = {k: torch.tensor(data=self.y[k][idx, ...], dtype=torch.float32) for k in
-             self.features}
+        x = {
+            k: torch.tensor(data=self.x[k][idx, ...], dtype=torch.float32)
+            for k in self.features
+        }
+        y = {
+            k: torch.tensor(data=self.y[k][idx, ...], dtype=torch.float32)
+            for k in self.features
+        }
         return x, y
 
     def get_adjacency_matrix(self) -> Tuple[torch.Tensor, torch.Tensor]:

@@ -56,8 +56,8 @@ class PemsBayIo:
     def data(self):
         return self.x, self.y
 
-    def get_pems_data(self, data_path: str, features: List = None) -> Tuple[np.ndarray,
-                                                                 np.ndarray]:
+    def get_pems_data(self, data_path: str,
+                      features: List = None) -> Tuple[np.ndarray, np.ndarray]:
         """
 
         Load the PeMS-Bay data.
@@ -85,7 +85,8 @@ class PemsBayIo:
 
         if "values" in features:
             # Range of values is 0-100, so half precision (float16) is ok.
-            values = np.expand_dims(a=data_df.values, axis=-1).astype(np.float16)
+            values = np.expand_dims(a=data_df.values,
+                                    axis=-1).astype(np.float16)
 
             data["values"] = values
 
@@ -114,7 +115,7 @@ class PemsBayIo:
             interval_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
                 (2, 1, 0)).astype(np.short)
             data["interval_of_day"] = interval_of_day
-        
+
         x, y = {}, {}
 
         indices_range = range(self.min_t, self.max_t)
