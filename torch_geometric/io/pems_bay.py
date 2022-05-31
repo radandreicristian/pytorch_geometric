@@ -56,7 +56,8 @@ class PemsBayIo:
     def data(self):
         return self.x, self.y
 
-    def get_pems_data(self, data_path: str) -> Tuple[np.ndarray, np.ndarray]:
+    def get_pems_data(self, data_path: str, features: List = None) -> Tuple[np.ndarray,
+                                                                 np.ndarray]:
         """
 
         Load the PeMS-Bay data.
@@ -74,37 +75,55 @@ class PemsBayIo:
             is the average speed in the 5-minutes interval, while the
             second are the third are hour-of-day and day-of-week indices.
         """
+        if not features:
+            features = ["features"]
 
         data_df = pd.read_csv(filepath_or_buffer=data_path, index_col=0)
         _, n_nodes = data_df.shape
 
-        # Range of values is 0-100, so half precision (float16) is ok.
-        data = np.expand_dims(a=data_df.values, axis=-1).astype(np.float16)
+        data = {}
 
-        data = [data]
+        if "values" in features:
+            # Range of values is 0-100, so half precision (float16) is ok.
+            values = np.expand_dims(a=data_df.values, axis=-1).astype(np.float16)
 
-        # Range of values is 0-23, so half precision (short) is ok.
-        hour_of_day = ((data_df.index.values.astype("datetime64") -
-                        data_df.index.values.astype("datetime64[D]")) / 3600)\
-            .astype(int) % 24
-        hour_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
-            (2, 1, 0)).astype(np.short)
-        data.append(hour_of_day)
+            data["values"] = values
 
-        day_of_week = data_df.index.astype("datetime64[ns]").dayofweek
-        day_of_week = np.tile(day_of_week, [1, n_nodes, 1]).transpose(
-            (2, 1, 0)).astype(np.short)
-        data.append(day_of_week)
+        if "hour_of_day" in features:
+            # Range of values is 0-23, so half precision (short) is ok.
+            hour_of_day = ((data_df.index.values.astype("datetime64") -
+                            data_df.index.values.astype("datetime64[D]")) / 3600)\
+                .astype(int) % 24
+            hour_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
+                (2, 1, 0)).astype(np.short)
 
-        data = np.concatenate(data, axis=-1)
-        x, y = [], []
+            data["hour_of_day"] = hour_of_day
+
+        if "day_of_week" in features:
+
+            day_of_week = data_df.index.astype("datetime64[ns]").dayofweek
+            day_of_week = np.tile(day_of_week, [1, n_nodes, 1]).transpose(
+                (2, 1, 0)).astype(np.short)
+
+            data["day_of_week"] = day_of_week
+
+        if "interval_of_day" in features:
+            interval_of_day = ((data_df.index.values.astype("datetime64") -
+                            data_df.index.values.astype("datetime64[D]")) / 720) \
+                              .astype(int) % 288
+            interval_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
+                (2, 1, 0)).astype(np.short)
+            data["interval_of_day"] = interval_of_day
+        
+        x, y = {}, {}
 
         indices_range = range(self.min_t, self.max_t)
-        x = [data[t + self.previous_offsets, ...] for t in indices_range]
-        y = [data[t + self.future_offsets, ...] for t in indices_range]
 
-        x = np.stack(arrays=x, axis=0)
-        y = np.stack(arrays=y, axis=0)
+        for key, value in data:
+            x[key] = np.stack([value[t + self.previous_offsets, ...] for t in \
+                    indices_range], axis=0)
+            y[key] = np.stack([value[t + self.future_offsets, ...] for t in \
+                    indices_range], axis=0)
 
         return x, y
 

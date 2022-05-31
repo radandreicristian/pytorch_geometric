@@ -275,6 +275,7 @@ class PemsBayInMemory(InMemoryDataset):
         self.y = torch.load(self.processed_paths[1])
         self.edge_index = torch.load(self.processed_paths[2])
         self.edge_attr = torch.load(self.processed_paths[3])
+        self.features = self.x.keys()
 
     @property
     def raw_file_names(self) -> str:
@@ -316,11 +317,14 @@ class PemsBayInMemory(InMemoryDataset):
         r"""Return the number of spatio-temporal graphs stored."""
         return len(self.x)
 
-    def get(self, idx: int) -> Data:
+    def get(self, idx: int) -> Tuple:
         r"""Get the data object at index :obj:`idx`."""
-        x = torch.tensor(data=self.x[idx, ...], dtype=torch.float32)
-        y = torch.tensor(data=self.y[idx, ...], dtype=torch.float32)
-
+        # x = torch.tensor(data=self.x[idx, ...], dtype=torch.float32)
+        # y = torch.tensor(data=self.y[idx, ...], dtype=torch.float32)
+        x = {k: torch.tensor(data=self.x[k][idx, ...], dtype=torch.float32) for k in
+            self.features}
+        y = {k: torch.tensor(data=self.y[k][idx, ...], dtype=torch.float32) for k in
+             self.features}
         return x, y
 
     def get_adjacency_matrix(self) -> Tuple[torch.Tensor, torch.Tensor]:
