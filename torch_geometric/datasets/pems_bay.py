@@ -273,8 +273,6 @@ class PemsBayInMemory(InMemoryDataset):
 
         self.x = torch.load(self.processed_paths[0])
         self.y = torch.load(self.processed_paths[1])
-        self.edge_index = torch.load(self.processed_paths[2])
-        self.edge_attr = torch.load(self.processed_paths[3])
         self.features = self.x.keys()
 
     @property
@@ -287,7 +285,7 @@ class PemsBayInMemory(InMemoryDataset):
     def processed_file_names(self) -> str:
         r"""The name of the files in the :obj:`self.processed_dir`
         folder that must be present in order to skip processing."""
-        return ["data_x.pt", "data_y.pt", "edge_index.pt", "edge_attr.pt"]
+        return ["data_x.pt", "data_y.pt"]
 
     def download(self) -> None:
         r"""Download the dataset to the :obj:`self.raw_dir` folder."""
@@ -300,22 +298,12 @@ class PemsBayInMemory(InMemoryDataset):
 
         x, y = self.io.get_pems_data(data_path=self.raw_paths[2])
 
-        adjacency_matrix = self.io.generate_adjacency_matrix(
-            distances_path=self.raw_paths[0],
-            sensor_ids_path=self.raw_paths[1])
-
-        adjacency_matrix = torch.from_numpy(adjacency_matrix)
-
-        edge_index, edge_attr = dense_to_sparse(adjacency_matrix)
-
         torch.save(x, self.processed_paths[0])
         torch.save(y, self.processed_paths[1])
-        torch.save(edge_index, self.processed_paths[2])
-        torch.save(edge_attr, self.processed_paths[3])
 
     def len(self) -> int:
         r"""Return the number of spatio-temporal graphs stored."""
-        return len(self.x)
+        return len(list(self.x.values())[0])
 
     def get(self, idx: int) -> Tuple:
         r"""Get the data object at index :obj:`idx`."""
@@ -330,17 +318,3 @@ class PemsBayInMemory(InMemoryDataset):
             for k in self.features
         }
         return x, y
-
-    def get_adjacency_matrix(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Return the graph's adjacency matrix in sparse COO format.
-
-        Returns: A tuple consisting of the index and attributes of the edges
-        in COO format.
-        """
-        edge_index = torch.load(self.processed_paths[2])
-        edge_attr = torch.load(self.processed_paths[3])
-        return edge_index, edge_attr
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}{self.name.capitalize()}()'

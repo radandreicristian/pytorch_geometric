@@ -73,33 +73,55 @@ class MetrLaIo:
             A tuple containing the X and Y tensors.
         """
 
+        if not features:
+            features = ["features", "interval_of_day", "day_of_week"]
+
         data_df = pd.read_csv(filepath_or_buffer=data_path, index_col=0)
         _, n_nodes = data_df.shape
-        data = np.expand_dims(a=data_df.values, axis=-1)
 
-        data = [data]
-        # Range of values is 0-23, so half precision (short) is ok.
-        hour_of_day = ((data_df.index.values.astype("datetime64") -
-                        data_df.index.values.astype("datetime64[D]")) / 3600) \
-                          .astype(int) % 24
-        hour_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
-            (2, 1, 0)).astype(np.short)
-        data.append(hour_of_day)
+        data = {}
 
-        day_of_week = data_df.index.astype("datetime64[ns]").dayofweek
-        day_of_week = np.tile(day_of_week, [1, n_nodes, 1]).transpose(
-            (2, 1, 0)).astype(np.short)
-        data.append(day_of_week)
+        if "features" in features:
+            # Range of features is 0-100, so half precision (float16) is ok.
+            dataset_features = np.expand_dims(a=data_df.values,
+                                              axis=-1).astype(np.float16)
 
-        data = np.concatenate(data, axis=-1)
-        x, y = [], []
+            data["features"] = dataset_features
+
+        if "hour_of_day" in features:
+            # Range of values is 0-23, so half precision (short) is ok.
+            hour_of_day = ((data_df.index.values.astype("datetime64") -
+                            data_df.index.values.astype("datetime64[D]")) / 3600) \
+                              .astype(int) % 24
+            hour_of_day = np.tile(hour_of_day, [1, n_nodes, 1]).transpose(
+                (2, 1, 0)).astype(np.short)
+
+            data["hour_of_day"] = hour_of_day
+
+        if "day_of_week" in features:
+            day_of_week = data_df.index.astype("datetime64[ns]").dayofweek
+            day_of_week = np.tile(day_of_week, [1, n_nodes, 1]).transpose(
+                (2, 1, 0)).astype(np.short)
+
+            data["day_of_week"] = day_of_week
+
+        if "interval_of_day" in features:
+            interval_of_day = ((data_df.index.values.astype("datetime64") -
+                                data_df.index.values.astype("datetime64[D]")) / 720) \
+                                  .astype(int) % 288
+            interval_of_day = np.tile(interval_of_day, [1, n_nodes, 1]).transpose(
+                (2, 1, 0)).astype(np.short)
+            data["interval_of_day"] = interval_of_day
+
+        x, y = {}, {}
 
         indices_range = range(self.min_t, self.max_t)
-        x = [data[t + self.previous_offsets, ...] for t in indices_range]
-        y = [data[t + self.future_offsets, ...] for t in indices_range]
 
-        x = np.stack(arrays=x, axis=0)
-        y = np.stack(arrays=y, axis=0)
+        for key, value in data.items():
+            x[key] = np.stack([np.swapaxes(value[t + self.previous_offsets, ...], 0, 1)
+                               for t in indices_range], axis=0)
+            y[key] = np.stack([np.swapaxes(value[t + self.future_offsets, ...], 0, 1)
+                               for t in indices_range], axis=0)
 
         return x, y
 
