@@ -109,8 +109,9 @@ class MetrLaIo:
             interval_of_day = ((data_df.index.values.astype("datetime64") -
                                 data_df.index.values.astype("datetime64[D]")) / 720) \
                                   .astype(int) % 288
-            interval_of_day = np.tile(interval_of_day, [1, n_nodes, 1]).transpose(
-                (2, 1, 0)).astype(np.short)
+            interval_of_day = np.tile(interval_of_day,
+                                      [1, n_nodes, 1]).transpose(
+                                          (2, 1, 0)).astype(np.short)
             data["interval_of_day"] = interval_of_day
 
         x, y = {}, {}
@@ -118,10 +119,14 @@ class MetrLaIo:
         indices_range = range(self.min_t, self.max_t)
 
         for key, value in data.items():
-            x[key] = np.stack([np.swapaxes(value[t + self.previous_offsets, ...], 0, 1)
-                               for t in indices_range], axis=0)
-            y[key] = np.stack([np.swapaxes(value[t + self.future_offsets, ...], 0, 1)
-                               for t in indices_range], axis=0)
+            x[key] = np.stack([
+                np.swapaxes(value[t + self.previous_offsets, ...], 0, 1)
+                for t in indices_range
+            ], axis=0)
+            y[key] = np.stack([
+                np.swapaxes(value[t + self.future_offsets, ...], 0, 1)
+                for t in indices_range
+            ], axis=0)
 
         return x, y
 
