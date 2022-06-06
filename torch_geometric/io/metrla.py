@@ -116,7 +116,7 @@ class MetrLaIo:
 
         x, y = {}, {}
 
-        indices_range = range(self.min_t, self.max_t)
+        indices_range = range(self.min_t, self.max_t, 12)
 
         for key, value in data.items():
             x[key] = np.stack([
