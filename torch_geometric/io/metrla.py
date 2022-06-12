@@ -56,7 +56,8 @@ class MetrLaIo:
     def data(self):
         return self.x, self.y
 
-    def get_metrla_data(self, data_path: str) -> Tuple[np.ndarray, np.ndarray]:
+    def get_metrla_data(self, data_path: str,
+                        features: List = None) -> Tuple[np.ndarray, np.ndarray]:
         """
 
         Load the MetrLA data.
